@@ -1,0 +1,325 @@
+{
+  "_comment": "Strategy classification provided directly by the user (2026-08-25) — replaces an earlier best-effort guess. family is the main technique bucket; setup is the specific pattern. The user's table also had a TF column, but that's omitted here since the DB already has the actual backtested timeframe per row, which is more precise than this table's mostly 'strategy-defined' TF field.",
+  "categories": {
+    "1 HR Webster Power Trend Long": {
+      "family": "Trend",
+      "setup": "Trend continuation"
+    },
+    "20/50 SMA Cross Long Daily": {
+      "family": "Moving Average",
+      "setup": "Crossover"
+    },
+    "30Min EMA Cross Strategy": {
+      "family": "Moving Average",
+      "setup": "Crossover"
+    },
+    "5/20 EMA Bull Cross Long 1-Hour": {
+      "family": "Moving Average",
+      "setup": "Crossover"
+    },
+    "8/21 EMA Cross Long Daily": {
+      "family": "Moving Average",
+      "setup": "Crossover"
+    },
+    "8/21 EMA Cross Strategy": {
+      "family": "Moving Average",
+      "setup": "Crossover"
+    },
+    "AAPL 15m RVOL Reversal": {
+      "family": "Volume/Reversal",
+      "setup": "RVOL reversal"
+    },
+    "Any Bullish MA Cross Long 1-Hour": {
+      "family": "Moving Average",
+      "setup": "Crossover"
+    },
+    "Arnaud Legoux Momentum Strategy": {
+      "family": "Momentum",
+      "setup": "Trend/momentum"
+    },
+    "Bband breakdown": {
+      "family": "Bollinger",
+      "setup": "Breakdown"
+    },
+    "BB/KC Squeeze (TTM) Breakout Strategy": {
+      "family": "Volatility/Breakout",
+      "setup": "Squeeze breakout"
+    },
+    "Blood in the Streets Long Weekly": {
+      "family": "Trend",
+      "setup": "Long trend"
+    },
+    "Bollinger Band Breakout Strategy": {
+      "family": "Bollinger/Breakout",
+      "setup": "Breakout"
+    },
+    "Bullish Fakeout 1-Hour Long": {
+      "family": "Reversal",
+      "setup": "Failed breakdown"
+    },
+    "Daily Stock Pick – Buy the Dip from Goldman Sachs": {
+      "family": "Mean Reversion",
+      "setup": "Pullback"
+    },
+    "Daily Stock Pick – Liberation Day Weekly Strategy": {
+      "family": "Event/Trend",
+      "setup": "Event strategy"
+    },
+    "Daily Stock Pick – Tesla Strategy Daily": {
+      "family": "Trend",
+      "setup": "Stock-specific"
+    },
+    "Daily Stock Pick VWAP Strategy": {
+      "family": "VWAP",
+      "setup": "VWAP"
+    },
+    "Death Cross Strategy": {
+      "family": "Moving Average",
+      "setup": "Bearish crossover"
+    },
+    "DEMA Strategy": {
+      "family": "Moving Average",
+      "setup": "Trend"
+    },
+    "Donchian Channel Long 30-Min": {
+      "family": "Breakout",
+      "setup": "Channel breakout"
+    },
+    "Donchian Channel Scalper 15m": {
+      "family": "Breakout",
+      "setup": "Channel breakout"
+    },
+    "Donchian Crawl": {
+      "family": "Breakout/Trend",
+      "setup": "Channel trend"
+    },
+    "Double Bollinger Band Strat": {
+      "family": "Bollinger",
+      "setup": "Volatility/reversion"
+    },
+    "Earnings Run Up Long Daily": {
+      "family": "Event",
+      "setup": "Earnings momentum"
+    },
+    "Earnings Runup": {
+      "family": "Event",
+      "setup": "Earnings momentum"
+    },
+    "EMA + PSAR Trend Following": {
+      "family": "Trend",
+      "setup": "Trend following"
+    },
+    "Golden Cross Strategy": {
+      "family": "Moving Average",
+      "setup": "Bullish crossover"
+    },
+    "Golden Cross Trader Long Daily": {
+      "family": "Moving Average",
+      "setup": "Bullish crossover"
+    },
+    "Guppy Moving Average Strat": {
+      "family": "Trend/MA",
+      "setup": "MA trend"
+    },
+    "Hammer Breakout Long Strategy": {
+      "family": "Candlestick/Breakout",
+      "setup": "Hammer breakout"
+    },
+    "High Volume Hammer": {
+      "family": "Candlestick/Volume",
+      "setup": "Hammer + volume"
+    },
+    "Hilbert Transform Long Strategy": {
+      "family": "Trend",
+      "setup": "Adaptive trend"
+    },
+    "Hull Crossover Strategy": {
+      "family": "Moving Average",
+      "setup": "Crossover"
+    },
+    "Ichimoku Oversold Long 30-Min": {
+      "family": "Ichimoku/Reversal",
+      "setup": "Oversold reversal"
+    },
+    "Inside Bar Break Long": {
+      "family": "Breakout",
+      "setup": "Inside-bar breakout"
+    },
+    "Keltner Channel Bounce": {
+      "family": "Mean Reversion",
+      "setup": "Channel bounce"
+    },
+    "Least Squares Moving Average Strategy": {
+      "family": "Moving Average",
+      "setup": "Trend"
+    },
+    "MACD Bull Cross Below 0 Long 1-Hour": {
+      "family": "MACD/Momentum",
+      "setup": "Bullish crossover"
+    },
+    "MACD Cross Long Daily": {
+      "family": "MACD",
+      "setup": "Crossover"
+    },
+    "MACD Momentum Strategy": {
+      "family": "MACD/Momentum",
+      "setup": "Momentum"
+    },
+    "MESA Adaptive Long Strategy": {
+      "family": "Adaptive Trend",
+      "setup": "Trend"
+    },
+    "Moving Average Cloud Strategy": {
+      "family": "Moving Average",
+      "setup": "Trend"
+    },
+    "Moving Average w/ Variable Period Long Strategy": {
+      "family": "Moving Average",
+      "setup": "Adaptive trend"
+    },
+    "NFLX and CHATS Long 1-Hour": {
+      "family": "Stock-specific",
+      "setup": "Long"
+    },
+    "NFLX Squeeze Breakout on Volume 1hr": {
+      "family": "Volatility/Volume",
+      "setup": "Squeeze breakout"
+    },
+    "ORB Long 15-Min": {
+      "family": "ORB/Breakout",
+      "setup": "Opening breakout"
+    },
+    "ORB Trading Strategy Backtest 3R Long": {
+      "family": "ORB/Breakout",
+      "setup": "Opening breakout"
+    },
+    "ORB Trading Strategy Backtest 3R Short": {
+      "family": "ORB/Breakdown",
+      "setup": "Opening breakdown"
+    },
+    "PSAR Bullish Strategy": {
+      "family": "Trend",
+      "setup": "PSAR trend"
+    },
+    "QQQ VWAP Rush": {
+      "family": "VWAP",
+      "setup": "VWAP momentum"
+    },
+    "Reversal Candle Long Strategy": {
+      "family": "Reversal",
+      "setup": "Candlestick reversal"
+    },
+    "Reversal Candle on Volume (15m)": {
+      "family": "Reversal/Volume",
+      "setup": "Volume reversal"
+    },
+    "Reversal Candle with Momentum Long Strategy": {
+      "family": "Reversal/Momentum",
+      "setup": "Momentum reversal"
+    },
+    "RSI + Bollinger Bands Volatility Strategy": {
+      "family": "Mean Reversion",
+      "setup": "Oversold/reversion"
+    },
+    "RSI + MACD + Williams R": {
+      "family": "Oscillator",
+      "setup": "Multi-indicator"
+    },
+    "RSI Momentum": {
+      "family": "RSI/Momentum",
+      "setup": "Momentum"
+    },
+    "RVOL Breakout Strategy": {
+      "family": "Volume/Breakout",
+      "setup": "Relative-volume breakout"
+    },
+    "RVOL Reversal Long 15-Min": {
+      "family": "Volume/Reversal",
+      "setup": "Relative-volume reversal"
+    },
+    "Sell In May and Go Away Long Monthly": {
+      "family": "Seasonal",
+      "setup": "Seasonal trend"
+    },
+    "Smoothed Moving Average Long Strategy": {
+      "family": "Moving Average",
+      "setup": "Trend"
+    },
+    "SQ Bollinger Band Short": {
+      "family": "Bollinger/Short",
+      "setup": "Breakdown/reversion"
+    },
+    "Standard William Vix Fix Strategy": {
+      "family": "Volatility/Reversal",
+      "setup": "Volatility reversal"
+    },
+    "Stochastic w/ 100SMA Strategy": {
+      "family": "Oscillator/Trend",
+      "setup": "Trend + oscillator"
+    },
+    "SuperTrend Scalper Long 30-Min": {
+      "family": "Trend",
+      "setup": "Scalping"
+    },
+    "SuperTrend Swing Long 4-Hour": {
+      "family": "Trend",
+      "setup": "Swing trend"
+    },
+    "TDI Long Strategy": {
+      "family": "Oscillator/Trend",
+      "setup": "Trend/momentum"
+    },
+    "TEMA Strategy": {
+      "family": "Moving Average",
+      "setup": "Trend"
+    },
+    "TSLA 21 EMA Pullback Long": {
+      "family": "Pullback",
+      "setup": "EMA pullback"
+    },
+    "Turtle Trader Long Daily (Both Systems)": {
+      "family": "Breakout/Trend",
+      "setup": "Turtle breakout"
+    },
+    "Turtle Traders Long Daily": {
+      "family": "Breakout/Trend",
+      "setup": "Turtle breakout"
+    },
+    "TWAP Strategy": {
+      "family": "Execution/Mean Reversion",
+      "setup": "TWAP"
+    },
+    "UDOW 15 Min Money Maker": {
+      "family": "Momentum/ETF",
+      "setup": "Intraday momentum"
+    },
+    "Vortex Bullish Momentum Strategy": {
+      "family": "Momentum",
+      "setup": "Trend/momentum"
+    },
+    "VWAP Scalper Long 30-Min": {
+      "family": "VWAP",
+      "setup": "VWAP scalping"
+    },
+    "VWMA Bullish Crossover Strategy": {
+      "family": "Volume/MA",
+      "setup": "Volume-weighted crossover"
+    },
+    "Weekly Anchored OBV Strategy @ 65min": {
+      "family": "Volume/Trend",
+      "setup": "OBV trend"
+    },
+    "Weinstein Stage 2 Breakout Long Weekly": {
+      "family": "Breakout/Trend",
+      "setup": "Stage breakout"
+    },
+    "Williams %R Momentum Strategy": {
+      "family": "Oscillator/Momentum",
+      "setup": "Momentum"
+    },
+    "Zero Lag MA Long Strategy": {
+      "family": "Moving Average",
+      "setup": "Trend"
+    }
+  }
+}
