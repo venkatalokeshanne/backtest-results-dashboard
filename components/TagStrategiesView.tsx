@@ -28,7 +28,6 @@ const SUMMARY_COLUMNS: Column[] = [
   { key: "strategy_family", label: "Family", sortable: true },
   { key: "robustness_score", label: "Score", align: "right", sortable: true, render: fmt },
   { key: "confidence", label: "Confidence", sortable: true, render: confidenceBadge },
-  { key: "reason", label: "Reason", sortable: true },
 ];
 
 const TOP10_COLUMNS: Column[] = [
@@ -40,12 +39,11 @@ const TOP10_COLUMNS: Column[] = [
   { key: "n_tickers", label: "Tickers", align: "right" },
   { key: "tickers_positive_ratio", label: "Tickers +", align: "right", render: (v) => (v === "" ? "—" : `${Math.round(Number(v) * 100)}%`) },
   { key: "median_sharpe", label: "Med. Sharpe", align: "right", render: fmt },
-  { key: "median_expectancy", label: "Med. Expectancy", align: "right", render: fmt },
   { key: "median_net_profit_pct", label: "Avg Perf %", align: "right", render: (v) => <span className={numClass(v)}>{fmt(v)}</span> },
   { key: "median_asset_perf", label: "Avg Asset Perf %", align: "right", render: (v) => <span className={numClass(v)}>{fmt(v)}</span> },
   { key: "median_max_dd", label: "Med. Max DD", align: "right", render: (v) => <span className={numClass(v)}>{fmt(v)}</span> },
   { key: "median_trades", label: "Med. Trades", align: "right", render: fmt },
-  { key: "reason", label: "Reason" },
+  { key: "median_expectancy", label: "Med. Expectancy", align: "right", render: fmt },
 ];
 
 export default function TagStrategiesView() {

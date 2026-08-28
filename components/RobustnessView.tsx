@@ -69,13 +69,12 @@ export default function RobustnessView() {
     { key: "robustness_score", label: "Score", align: "right", sortable: true, render: fmt },
     { key: "confidence", label: "Confidence", sortable: true, render: confidenceBadge },
     { key: "median_sharpe", label: "Med. Sharpe", align: "right", sortable: true, render: fmt },
-    { key: "median_expectancy", label: "Med. Expectancy", align: "right", sortable: true, render: fmt },
     { key: "median_net_profit_pct", label: "Avg Perf %", align: "right", sortable: true, render: (v) => <span className={numClass(v)}>{fmt(v)}</span> },
     { key: "median_asset_perf", label: "Avg Asset Perf %", align: "right", sortable: true, render: (v) => <span className={numClass(v)}>{fmt(v)}</span> },
     { key: "median_max_dd", label: "Med. Max DD", align: "right", sortable: true, render: (v) => <span className={numClass(v)}>{fmt(v)}</span> },
     { key: "median_trades", label: "Med. Trades", align: "right", sortable: true, render: fmt },
     { key: "depths_positive", label: "Depths +", align: "center", sortable: true },
-    { key: "reason", label: "Reason", sortable: true },
+    { key: "median_expectancy", label: "Med. Expectancy", align: "right", sortable: true, render: fmt },
   ];
 
   const strategyColumns: Column[] = [

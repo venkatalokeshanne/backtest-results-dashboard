@@ -24,13 +24,12 @@ const COLUMNS: Column[] = [
   { key: "robustness_score", label: "Score", align: "right", render: fmt },
   { key: "confidence", label: "Confidence", render: confidenceBadge },
   { key: "median_sharpe", label: "Med. Sharpe", align: "right", render: fmt },
-  { key: "median_expectancy", label: "Med. Expectancy", align: "right", render: fmt },
   { key: "median_net_profit_pct", label: "Avg Perf %", align: "right", render: (v) => <span className={numClass(v)}>{fmt(v)}</span> },
   { key: "median_asset_perf", label: "Avg Asset Perf %", align: "right", render: (v) => <span className={numClass(v)}>{fmt(v)}</span> },
   { key: "median_max_dd", label: "Med. Max DD", align: "right", render: (v) => <span className={numClass(v)}>{fmt(v)}</span> },
   { key: "median_trades", label: "Med. Trades", align: "right", render: fmt },
   { key: "depths_positive", label: "Depths +", align: "center" },
-  { key: "reason", label: "Reason" },
+  { key: "median_expectancy", label: "Med. Expectancy", align: "right", render: fmt },
 ];
 
 export default function TopStrategiesView({ tickers }: { tickers: string[] }) {
@@ -63,12 +62,6 @@ export default function TopStrategiesView({ tickers }: { tickers: string[] }) {
 
   return (
     <div className="flex flex-col gap-4">
-      <p className="max-w-3xl text-sm text-text-dim">
-        Every strategy tried on this ticker &amp; timeframe, ranked by the same profitability +
-        cross-depth consistency + risk-adjusted score as the Robustness view — not just the single
-        best pick.
-      </p>
-
       <div className="flex flex-wrap items-end gap-3 rounded-xl border border-border bg-surface p-3.5">
         <div>
           <label className="mb-1 block text-[0.65rem] font-semibold uppercase tracking-wider text-text-dim">

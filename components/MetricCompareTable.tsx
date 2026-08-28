@@ -10,10 +10,10 @@ export const METRIC_ROWS: { key: string; label: string; better: "high" | "low" |
   { key: "sortino", label: "Sortino", better: "high" },
   { key: "max_drawdown", label: "Max Drawdown", better: "high" }, // less negative = higher = better
   { key: "avg_trade", label: "Avg Trade %", better: "high" },
-  { key: "expectancy", label: "Expectancy", better: "high" },
   { key: "rew_risk_ratio", label: "Reward/Risk", better: "high" },
   { key: "trades_per_month", label: "Trades/Month", better: null },
   { key: "avg_length", label: "Avg Trade Length", better: null },
+  { key: "expectancy", label: "Expectancy", better: "high" },
 ];
 
 function fmt(v: any) {

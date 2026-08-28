@@ -20,10 +20,10 @@ const COLUMNS: Column[] = [
   { key: "sortino", label: "Sortino", sortable: true, align: "right", render: fmt },
   { key: "max_drawdown", label: "Max DD", sortable: true, align: "right", render: (v) => <span className={numClass(v)}>{fmt(v)}</span> },
   { key: "avg_trade", label: "Avg Trade %", sortable: true, align: "right", render: fmt },
-  { key: "expectancy", label: "Expectancy", sortable: true, align: "right", render: fmt },
   { key: "rew_risk_ratio", label: "R/R", sortable: true, align: "right", render: fmt },
   { key: "trades_per_month", label: "Trades/mo", sortable: true, align: "right", render: fmt },
   { key: "avg_length", label: "Avg Length", sortable: true, align: "right", render: fmt },
+  { key: "expectancy", label: "Expectancy", sortable: true, align: "right", render: fmt },
 ];
 
 function fmt(v: any) {
