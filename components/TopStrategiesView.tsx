@@ -49,7 +49,10 @@ export default function TopStrategiesView({ tickers }: { tickers: string[] }) {
     setLoading(true);
     fetch(`/api/top-strategies?tf=${tf}&ticker=${encodeURIComponent(ticker)}`)
       .then((r) => r.json())
-      .then((data) => setRows(data.rows ?? []))
+      // /api/top-strategies now returns every candidate for the ticker
+      // (needed for the cross-timeframe reliability check elsewhere) —
+      // this view is specifically "top 10", so slice here.
+      .then((data) => setRows((data.rows ?? []).slice(0, 10)))
       .finally(() => setLoading(false));
   }, [ticker, tf]);
 

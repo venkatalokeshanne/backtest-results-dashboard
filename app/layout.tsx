@@ -2,7 +2,7 @@ import "./globals.css";
 import type { Metadata } from "next";
 
 export const metadata: Metadata = {
-  title: "Backtest Results",
+  title: "Backtests",
   description: "Quant backtest results dashboard",
 };
 

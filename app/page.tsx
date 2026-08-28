@@ -1,13 +1,14 @@
 "use client";
 
 import { useEffect, useState } from "react";
-import Sidebar from "@/components/Sidebar";
+import TopNav from "@/components/TopNav";
 import FiltersBar, { type FiltersState, type FilterOptions } from "@/components/FiltersBar";
 import LeaderboardView from "@/components/LeaderboardView";
 import BrowseView from "@/components/BrowseView";
 import RobustnessView from "@/components/RobustnessView";
 import TopStrategiesView from "@/components/TopStrategiesView";
 import TagStrategiesView from "@/components/TagStrategiesView";
+import CompareTimeframesView from "@/components/CompareTimeframesView";
 
 const EMPTY_FILTERS: FiltersState = {
   strategy_name: [], ticker: [], timeframe: [], depth: [],
@@ -21,6 +22,7 @@ const VIEW_TITLES: Record<string, string> = {
   robustness: "Robustness",
   "top-strategies": "Top Strategies",
   "tag-strategies": "Top Strategies by Tag",
+  compare: "Compare",
 };
 
 export default function Home() {
@@ -41,8 +43,8 @@ export default function Home() {
   const showFilters = view === "leaderboard" || view === "browse";
 
   return (
-    <div className="flex min-h-screen flex-col md:flex-row">
-      <Sidebar active={view} onSelect={setView} totalRows={totalRows} />
+    <div className="flex min-h-screen flex-col">
+      <TopNav active={view} onSelect={setView} totalRows={totalRows} />
 
       <main className="flex-1 overflow-x-hidden px-4 py-5 sm:px-6 lg:px-8">
         <div className="mx-auto flex max-w-[1600px] flex-col gap-5">
@@ -55,6 +57,7 @@ export default function Home() {
           {view === "robustness" && <RobustnessView />}
           {view === "top-strategies" && <TopStrategiesView tickers={options?.tickers ?? []} />}
           {view === "tag-strategies" && <TagStrategiesView />}
+          {view === "compare" && <CompareTimeframesView tickers={options?.tickers ?? []} />}
         </div>
       </main>
     </div>
