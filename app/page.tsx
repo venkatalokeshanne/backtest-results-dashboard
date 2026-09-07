@@ -9,6 +9,7 @@ import RobustnessView from "@/components/RobustnessView";
 import TopStrategiesView from "@/components/TopStrategiesView";
 import TagStrategiesView from "@/components/TagStrategiesView";
 import CompareTimeframesView from "@/components/CompareTimeframesView";
+import PlaybookView from "@/components/PlaybookView";
 
 const EMPTY_FILTERS: FiltersState = {
   strategy_name: [], ticker: [], timeframe: [], depth: [],
@@ -23,6 +24,7 @@ const VIEW_TITLES: Record<string, string> = {
   "top-strategies": "Top Strategies",
   "tag-strategies": "Top Strategies by Tag",
   compare: "Compare",
+  playbook: "Day-Trading Playbook",
 };
 
 export default function Home() {
@@ -58,6 +60,7 @@ export default function Home() {
           {view === "top-strategies" && <TopStrategiesView tickers={options?.tickers ?? []} />}
           {view === "tag-strategies" && <TagStrategiesView />}
           {view === "compare" && <CompareTimeframesView tickers={options?.tickers ?? []} />}
+          {view === "playbook" && <PlaybookView />}
         </div>
       </main>
     </div>

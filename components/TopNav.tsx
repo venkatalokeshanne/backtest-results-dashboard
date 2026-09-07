@@ -7,6 +7,7 @@ export const NAV = [
   { key: "top-strategies", label: "Top Strategies" },
   { key: "tag-strategies", label: "By Tag" },
   { key: "compare", label: "Compare" },
+  { key: "playbook", label: "Day-Trading Playbook" },
 ];
 
 export default function TopNav({

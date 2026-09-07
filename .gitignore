@@ -13,3 +13,6 @@
 .DS_Store
 *.pem
 npm-debug.log*
+
+# typescript incremental build info
+*.tsbuildinfo
