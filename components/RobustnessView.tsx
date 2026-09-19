@@ -23,7 +23,13 @@ function fmt(v: any) {
 
 type RobData = { tickers: any[]; strategies: any[]; concentration: any[]; no_edge: any[] };
 
-export default function RobustnessView() {
+export default function RobustnessView({
+  watchlist = "",
+  watchlistTickers = [],
+}: {
+  watchlist?: string;
+  watchlistTickers?: string[];
+}) {
   const [tf, setTf] = useState("5m");
   const [cache, setCache] = useState<Record<string, RobData>>({});
   const [loading, setLoading] = useState(false);
@@ -41,25 +47,33 @@ export default function RobustnessView() {
 
   const data = cache[tf];
 
-  const tickers = useMemo(() => {
+  // The header's watchlist narrows which tickers this view reports on.
+  // Applied before the search/confidence filters so the stat cards above
+  // count the same rows the table shows.
+  const scoped = useMemo(() => {
     if (!data) return [];
-    let rows = data.tickers;
+    if (!watchlist) return data.tickers;
+    const inList = new Set(watchlistTickers);
+    return data.tickers.filter((r) => inList.has(r.ticker));
+  }, [data, watchlist, watchlistTickers]);
+
+  const tickers = useMemo(() => {
+    let rows = scoped;
     if (search) rows = rows.filter((r) => r.ticker?.toUpperCase().includes(search.toUpperCase()));
     if (confFilter) rows = rows.filter((r) => r.confidence === confFilter);
     return [...rows].sort((a, b) => (CONF_ORDER[a.confidence] ?? 4) - (CONF_ORDER[b.confidence] ?? 4));
-  }, [data, search, confFilter]);
+  }, [scoped, search, confFilter]);
 
   const summary = useMemo(() => {
-    if (!data) return { high: 0, medium: 0, low: 0, noEdge: 0 };
     const counts = { high: 0, medium: 0, low: 0, noEdge: 0 };
-    for (const r of data.tickers) {
+    for (const r of scoped) {
       if (r.confidence === "HIGH") counts.high++;
       else if (r.confidence === "MEDIUM") counts.medium++;
       else if (r.confidence === "LOW") counts.low++;
       else counts.noEdge++;
     }
     return counts;
-  }, [data]);
+  }, [scoped]);
 
   const tickerColumns: Column[] = [
     { key: "ticker", label: "Ticker", sortable: true },
@@ -98,7 +112,14 @@ export default function RobustnessView() {
 
   const tickerSort = useSort(tickers);
   const strategySort = useSort(data?.strategies ?? []);
-  const noEdgeSort = useSort(data?.no_edge ?? []);
+  const noEdgeSort = useSort(
+    useMemo(() => {
+      const rows = data?.no_edge ?? [];
+      if (!watchlist) return rows;
+      const inList = new Set(watchlistTickers);
+      return rows.filter((r: any) => inList.has(r.ticker));
+    }, [data, watchlist, watchlistTickers])
+  );
 
   const chartData = (data?.concentration ?? []).slice(0, 10).map((r) => ({
     name: r.strategy.length > 22 ? r.strategy.slice(0, 20) + "…" : r.strategy,
@@ -120,6 +141,14 @@ export default function RobustnessView() {
           </button>
         ))}
       </div>
+
+      {watchlist && (
+        <p className="text-xs text-text-faint">
+          Scoped to <span className="text-accent">{watchlist}</span> — {scoped.length} of{" "}
+          {data?.tickers.length ?? 0} tickers on this timeframe. The concentration chart and
+          strategy summary stay unscoped — both are precomputed across every ticker.
+        </p>
+      )}
 
       {loading && !data && <div className="py-10 text-center text-text-faint">Loading…</div>}
 

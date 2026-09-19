@@ -10,6 +10,7 @@ export type FiltersState = {
   strategy_family: string[];
   strategy_setup: string[];
   ticker_tag: string[];
+  watchlist: string[];
   min_trades: number;
 };
 
@@ -21,18 +22,31 @@ export type FilterOptions = {
   strategy_families: string[];
   strategy_setups: string[];
   ticker_tags: string[];
+  watchlists: Watchlist[];
+};
+
+export type Watchlist = {
+  name: string;
+  ibkr_id: string;
+  tickers: string[];
+  tickers_in_data: string[];
 };
 
 export default function FiltersBar({
   filters,
   options,
   onChange,
+  /** Ticker universe after the header's watchlist scope is applied. */
+  scopedTickers,
 }: {
   filters: FiltersState;
   options: FilterOptions | null;
   onChange: (next: FiltersState) => void;
+  scopedTickers?: string[];
 }) {
   if (!options) return null;
+  const tickerOptions = scopedTickers ?? options.tickers;
+  const watchlist = filters.watchlist[0];
   const depthStrs = options.depths.map(String);
 
   return (
@@ -44,8 +58,8 @@ export default function FiltersBar({
         onChange={(v) => onChange({ ...filters, strategy_name: v })}
       />
       <MultiSelect
-        label="Ticker"
-        options={options.tickers}
+        label={watchlist ? `Ticker · ${watchlist}` : "Ticker"}
+        options={tickerOptions}
         selected={filters.ticker}
         onChange={(v) => onChange({ ...filters, ticker: v })}
       />

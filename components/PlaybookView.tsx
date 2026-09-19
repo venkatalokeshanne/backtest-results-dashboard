@@ -79,7 +79,13 @@ const STRATEGY_COLUMNS: Column[] = [
   { key: "n_tickers", label: "Tickers", align: "right", sortable: true },
 ];
 
-export default function PlaybookView() {
+export default function PlaybookView({
+  watchlist = "",
+  watchlistTickers = [],
+}: {
+  watchlist?: string;
+  watchlistTickers?: string[];
+}) {
   const [data, setData] = useState<Playbook | null>(null);
   const [loading, setLoading] = useState(true);
   const [selected, setSelected] = useState<{ tag: string; regime: string } | null>(null);
@@ -91,6 +97,19 @@ export default function PlaybookView() {
       .then(setData)
       .finally(() => setLoading(false));
   }, []);
+
+  // Playbook cells are precomputed across the full ticker universe, so a
+  // watchlist cannot change their scores. What it can honestly do is say
+  // which ticker types the watchlist actually reaches — rows it does not
+  // reach are dimmed, and the banner below keeps the distinction explicit.
+  const watchlistSet = useMemo(() => new Set(watchlistTickers), [watchlistTickers]);
+  const typeHits = useMemo(() => {
+    const m = new Map<string, number>();
+    for (const t of data?.ticker_types ?? []) {
+      m.set(t.tag, watchlist ? t.tickers.filter((x) => watchlistSet.has(x)).length : t.n_tickers);
+    }
+    return m;
+  }, [data, watchlist, watchlistSet]);
 
   const cellIndex = useMemo(() => {
     const m = new Map<string, Cell>();
@@ -172,6 +191,22 @@ export default function PlaybookView() {
         </div>
       )}
 
+      {watchlist && (
+        <div className="rounded-xl border border-blue/30 bg-surface p-3.5 text-sm">
+          <span className="font-semibold text-blue">Watchlist scope is informational here.</span>{" "}
+          <span className="text-text-dim">
+            Every score below is computed across the full {data.meta.n_windows.toLocaleString()}-window
+            universe and does not change with the watchlist — re-running{" "}
+            <code className="rounded bg-surface-raised px-1.5 py-0.5 font-mono text-xs">
+              scripts/build_daytrading_playbook.py
+            </code>{" "}
+            against a subset would be needed for that. Ticker types your{" "}
+            <span className="text-text">{watchlist}</span> list doesn't reach are dimmed, and the count
+            beside each row is how many of its {watchlistTickers.length} tickers fall in that type.
+          </span>
+        </div>
+      )}
+
       <RegimeLegend regimes={data.regimes} />
 
       <div className="rounded-xl border border-border bg-surface p-4">
@@ -194,11 +229,21 @@ export default function PlaybookView() {
               </tr>
             </thead>
             <tbody>
-              {data.ticker_types.map((t) => (
-                <tr key={t.tag} className="border-t border-border-soft">
+              {data.ticker_types.map((t) => {
+                const hits = typeHits.get(t.tag) ?? 0;
+                const dimmed = watchlist !== "" && hits === 0;
+                return (
+                <tr key={t.tag} className={`border-t border-border-soft ${dimmed ? "opacity-35" : ""}`}>
                   <td className="whitespace-nowrap px-2 py-1.5 capitalize">
                     {t.tag}
-                    <span className="ml-1.5 text-xs text-text-faint">{t.n_tickers}</span>
+                    <span
+                      className={`ml-1.5 text-xs ${watchlist && hits > 0 ? "text-accent" : "text-text-faint"}`}
+                      title={watchlist
+                        ? `${hits} of ${watchlist}'s tickers are in this type (${t.n_tickers} overall)`
+                        : `${t.n_tickers} tickers`}
+                    >
+                      {watchlist ? `${hits}/${t.n_tickers}` : t.n_tickers}
+                    </span>
                   </td>
                   {data.regimes.map((r) => {
                     const c = cellIndex.get(`${t.tag}|${r.key}`);
@@ -214,7 +259,8 @@ export default function PlaybookView() {
                     );
                   })}
                 </tr>
-              ))}
+                );
+              })}
             </tbody>
           </table>
         </div>
