@@ -42,6 +42,7 @@ export type Row = Record<string, any> & {
 
 let cachedRows: Row[] | null = null;
 let cachedTagFrequency: [string, number][] | null = null;
+let cachedWatchlists: Watchlist[] | null = null;
 
 function loadJson(name: string): Record<string, any> {
   return JSON.parse(fs.readFileSync(path.join(CONFIG_DIR, name), "utf-8")).categories;
@@ -80,6 +81,55 @@ export function getRows(): Row[] {
   return cachedRows;
 }
 
+export type Watchlist = {
+  name: string;
+  ibkr_id: string;
+  /** Every symbol on the IBKR list, including ones with no backtest data. */
+  tickers: string[];
+  /** Subset of `tickers` that actually has backtest rows. */
+  tickers_in_data: string[];
+};
+
+/** Loads config/watchlists.json — a snapshot of the user's Interactive
+ * Brokers watchlists (earnings lists excluded). The IBKR lists carry
+ * futures, forex and non-US listings that were never backtested, so each
+ * list also reports which of its symbols this dataset actually covers;
+ * the UI uses that to disable lists with no usable tickers rather than
+ * silently offering a filter that matches nothing. */
+export function getWatchlists(): Watchlist[] {
+  if (cachedWatchlists) return cachedWatchlists;
+
+  const file = path.join(CONFIG_DIR, "watchlists.json");
+  if (!fs.existsSync(file)) return (cachedWatchlists = []);
+
+  const raw = JSON.parse(fs.readFileSync(file, "utf-8")) as { watchlists?: Watchlist[] };
+  const inData = new Set(getRows().map((r) => r.ticker));
+
+  cachedWatchlists = (raw.watchlists ?? []).map((w) => ({
+    name: w.name,
+    ibkr_id: w.ibkr_id,
+    tickers: w.tickers,
+    tickers_in_data: w.tickers.filter((t) => inData.has(t)),
+  }));
+  return cachedWatchlists;
+}
+
+/** Resolve watchlist names to the set of tickers they cover. Unknown
+ * names are ignored rather than matching nothing, so a stale bookmark
+ * degrades to "no watchlist scope" instead of an empty dashboard. */
+export function watchlistTickerSet(names: string[]): Set<string> | null {
+  if (!names.length) return null;
+  const wanted = new Set(names);
+  const out = new Set<string>();
+  let matched = false;
+  for (const w of getWatchlists()) {
+    if (!wanted.has(w.name)) continue;
+    matched = true;
+    for (const t of w.tickers_in_data) out.add(t);
+  }
+  return matched ? out : null;
+}
+
 export function getTagFrequency(): [string, number][] {
   if (cachedTagFrequency) return cachedTagFrequency;
   const counts: Record<string, number> = {};
@@ -93,6 +143,7 @@ export function getTagFrequency(): [string, number][] {
 export type Filters = {
   strategy_name: string[]; ticker: string[]; timeframe: string[]; depth: string[];
   strategy_family: string[]; strategy_setup: string[]; ticker_tag: string[];
+  watchlist: string[];
   min_trades: number;
 };
 
@@ -105,6 +156,7 @@ export function parseFilters(params: URLSearchParams): Filters {
     strategy_family: params.getAll("strategy_family"),
     strategy_setup: params.getAll("strategy_setup"),
     ticker_tag: params.getAll("ticker_tag"),
+    watchlist: params.getAll("watchlist"),
     min_trades: (() => {
       const n = parseInt(params.get("min_trades") ?? "5", 10);
       return Number.isNaN(n) ? 5 : n;
@@ -115,7 +167,11 @@ export function parseFilters(params: URLSearchParams): Filters {
 /** Same semantics as the old SQL WHERE clause: every dimension filter is
  * an OR-within-AND-across (IN), ticker_tag matches if the ticker carries
  * ANY of the selected tags, trade_count must clear min_trades, and
- * net_profit_pct above NET_PROFIT_PCT_CAP is always excluded. */
+ * net_profit_pct above NET_PROFIT_PCT_CAP is always excluded.
+ *
+ * Watchlist is an additional AND-ed scope on top of the explicit ticker
+ * filter, not a replacement for it: picking a watchlist narrows the
+ * universe, and picking tickers as well narrows it further. */
 export function makeFilterFn(f: Filters): (row: Row) => boolean {
   const sets = {
     strategy_name: f.strategy_name.length ? new Set(f.strategy_name) : null,
@@ -125,11 +181,13 @@ export function makeFilterFn(f: Filters): (row: Row) => boolean {
     strategy_family: f.strategy_family.length ? new Set(f.strategy_family) : null,
     strategy_setup: f.strategy_setup.length ? new Set(f.strategy_setup) : null,
     ticker_tag: f.ticker_tag.length ? new Set(f.ticker_tag) : null,
+    watchlist: watchlistTickerSet(f.watchlist),
   };
 
   return (row: Row) => {
     if (sets.strategy_name && !sets.strategy_name.has(row.strategy_name)) return false;
     if (sets.ticker && !sets.ticker.has(row.ticker)) return false;
+    if (sets.watchlist && !sets.watchlist.has(row.ticker)) return false;
     if (sets.timeframe && !sets.timeframe.has(row.timeframe)) return false;
     if (sets.depth && !sets.depth.has(row.depth)) return false;
     if (sets.strategy_family && !sets.strategy_family.has(row.strategy_family)) return false;

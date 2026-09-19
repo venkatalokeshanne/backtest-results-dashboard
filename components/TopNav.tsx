@@ -1,5 +1,8 @@
 "use client";
 
+import WatchlistSelect from "./WatchlistSelect";
+import type { Watchlist } from "./FiltersBar";
+
 export const NAV = [
   { key: "leaderboard", label: "Leaderboard" },
   { key: "browse", label: "Browse" },
@@ -7,16 +10,25 @@ export const NAV = [
   { key: "top-strategies", label: "Top Strategies" },
   { key: "tag-strategies", label: "By Tag" },
   { key: "compare", label: "Compare" },
+  { key: "playbook", label: "Day-Trading Playbook" },
 ];
 
 export default function TopNav({
   active,
   onSelect,
   totalRows,
+  watchlists,
+  watchlist,
+  onWatchlistChange,
+  totalTickers,
 }: {
   active: string;
   onSelect: (key: string) => void;
   totalRows: number | null;
+  watchlists: Watchlist[];
+  watchlist: string;
+  onWatchlistChange: (name: string) => void;
+  totalTickers: number;
 }) {
   return (
     <header className="flex flex-wrap items-center justify-between gap-3 border-b border-border bg-surface px-4 py-3 sm:px-6 lg:px-8">
@@ -33,6 +45,14 @@ export default function TopNav({
           </p>
         </div>
       </div>
+
+      <div className="flex flex-wrap items-center gap-2">
+        <WatchlistSelect
+          watchlists={watchlists}
+          value={watchlist}
+          onChange={onWatchlistChange}
+          totalTickers={totalTickers}
+        />
 
       <div className="relative">
         <select
@@ -51,6 +71,7 @@ export default function TopNav({
         >
           <path d="M2.5 4.5L6 8l3.5-3.5" stroke="currentColor" strokeWidth="1.5" strokeLinecap="round" strokeLinejoin="round" />
         </svg>
+      </div>
       </div>
     </header>
   );

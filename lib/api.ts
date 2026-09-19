@@ -9,6 +9,7 @@ export function filtersToParams(filters: FiltersState): URLSearchParams {
   filters.strategy_family.forEach((v) => p.append("strategy_family", v));
   filters.strategy_setup.forEach((v) => p.append("strategy_setup", v));
   filters.ticker_tag.forEach((v) => p.append("ticker_tag", v));
+  filters.watchlist.forEach((v) => p.append("watchlist", v));
   p.set("min_trades", String(filters.min_trades));
   return p;
 }
