@@ -37,8 +37,14 @@ export async function GET(req: NextRequest) {
   // last 30%. Rows without that many bars are left out rather than silently judged on less.
   const depth = parseInt(p.get("depth") ?? "", 10);
   const source = Number.isNaN(depth) ? data.rows : data.rows.filter((r) => (r.bars ?? 0) > depth).map((r) => ({
-    ...r, oos_trades: r[`d${depth}_trades`], oos_avg_trade: r[`d${depth}_avg_trade`], oos_win_rate: r[`d${depth}_win_rate`],
+    ...r,
+    // the window replaces the "recent" part of the check ...
+    oos_trades: r[`d${depth}_trades`], oos_avg_trade: r[`d${depth}_avg_trade`], oos_win_rate: r[`d${depth}_win_rate`],
     oos_profit_factor: r[`d${depth}_profit_factor`], oos_edge_trade: r[`d${depth}_edge_trade`], oos_median_trade: null,
+    // ... and the headline figures describe that window too, as on the TrendSpider pages
+    trades: r[`d${depth}_trades`], win_rate: r[`d${depth}_win_rate`], avg_trade: r[`d${depth}_avg_trade`],
+    profit_factor: r[`d${depth}_profit_factor`], edge_trade: r[`d${depth}_edge_trade`], median_trade: null,
+    trades_per_month: null, max_drawdown: null, sharpe: null, sortino: null,
   }));
   const rows = source.filter((r) =>
     (!q.timeframe || r.timeframe === q.timeframe) &&

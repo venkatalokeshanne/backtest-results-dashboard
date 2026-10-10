@@ -57,8 +57,17 @@ const RUN_COLUMNS: Column[] = [
 ];
 
 function recentLabel(depth: string) { return depth ? `last ${depth} bars` : "last 30%"; }
+// With a depth picked, the headline columns (trades, win %, avg trade, PF) describe that window. In the
+// runs table the separate "last N bars" copies would then repeat them, and median / drawdown / trades per
+// month are not computed per window, so those columns are hidden rather than shown for the wrong period.
+const HEADLINE = new Set(["trades", "win_rate", "avg_trade", "profit_factor", "med_win"]);
+const HIDE_WITH_DEPTH = new Set(["median_trade", "max_drawdown", "trades_per_month",
+  "oos_trades", "oos_avg_trade", "oos_profit_factor"]);
 function withRecent(cols: Column[], depth: string): Column[] {
-  return cols.map((c) => ({ ...c, label: c.label.replace("last 30%", recentLabel(depth)) }));
+  return cols
+    .filter((c) => !(depth && HIDE_WITH_DEPTH.has(c.key)))
+    .map((c) => ({ ...c, label: c.label.replace("last 30%", recentLabel(depth)) +
+      (depth && HEADLINE.has(c.key) ? ` (last ${depth} bars)` : "") }));
 }
 
 export default function PineView({ tickers, watchlist }: { tickers: string[]; watchlist: string }) {
