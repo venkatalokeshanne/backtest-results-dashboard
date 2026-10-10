@@ -21,6 +21,9 @@ COLS = ["strategy_id", "ticker", "timeframe", "bars", "from", "to",
         "oos_trades", "oos_avg_trade", "oos_median_trade", "oos_profit_factor", "oos_win_rate",
         "sharpe", "sortino", "max_drawdown", "trades_per_month", "buyhold_pct",
         "drift_trade", "edge_trade", "is_edge_trade", "oos_edge_trade"]
+DEPTHS = (1000, 2000, 3000, 4000)
+for _d in DEPTHS:
+    COLS += [f"d{_d}_trades", f"d{_d}_avg_trade", f"d{_d}_win_rate", f"d{_d}_profit_factor", f"d{_d}_edge_trade"]
 
 
 def drift_per_bar(x):
@@ -79,7 +82,9 @@ def main():
                          r(100 * x["buyhold_return_pct"], 1) if x.get("buyhold_return_pct") is not None else None,
                          r(edge(0, x.get("t_bars"), x) * -1 if edge(0, x.get("t_bars"), x) is not None else None),
                          r(edge(x.get("t_avg"), x.get("t_bars"), x)), r(edge(x.get("is_avg"), x.get("is_bars"), x)),
-                         r(edge(x.get("oos_avg"), x.get("oos_bars"), x))])
+                         r(edge(x.get("oos_avg"), x.get("oos_bars"), x))]
+                        + [v for d in DEPTHS for v in (x.get(f"d{d}_n"), r(x.get(f"d{d}_avg")), r(x.get(f"d{d}_win"), 1),
+                                                       r(x.get(f"d{d}_pf")), r(edge(x.get(f"d{d}_avg"), x.get(f"d{d}_bars"), x)))])
     for sid, c in errors.items(): strategies[sid]["error_kinds"] = dict(c)
     done = sum(1 for f in glob.glob(str(SRC / "*" / "*.done")))
     OUT.write_text(json.dumps({"columns": COLS, "rows": rows, "strategies": strategies,

@@ -56,9 +56,15 @@ const RUN_COLUMNS: Column[] = [
   { key: "from", label: "From", sortable: true },
 ];
 
+function recentLabel(depth: string) { return depth ? `last ${depth} bars` : "last 30%"; }
+function withRecent(cols: Column[], depth: string): Column[] {
+  return cols.map((c) => ({ ...c, label: c.label.replace("last 30%", recentLabel(depth)) }));
+}
+
 export default function PineView({ tickers, watchlist }: { tickers: string[]; watchlist: string }) {
   const [mode, setMode] = useState<"rank" | "runs">("rank");
   const [timeframe, setTimeframe] = useState("");
+  const [depth, setDepth] = useState("");
   const [q, setQ] = useState("");
   const [minTrades, setMinTrades] = useState(30);
   const [sort, setSort] = useState("confidence");
@@ -68,19 +74,20 @@ export default function PineView({ tickers, watchlist }: { tickers: string[]; wa
   const [loading, setLoading] = useState(false);
 
   const tickerKey = watchlist ? tickers.join(",") : "";   // a stable key: the array is rebuilt every render
-  useEffect(() => setPage(1), [mode, timeframe, q, minTrades, watchlist]);
+  useEffect(() => setPage(1), [mode, timeframe, depth, q, minTrades, watchlist]);
 
   useEffect(() => {
     let cancelled = false;
     setLoading(true);
     const p = new URLSearchParams({ mode, timeframe, q, min_trades: String(minTrades), sort, dir, page: String(page), page_size: "50" });
     if (tickerKey) p.set("tickers", tickerKey);
+    if (depth) p.set("depth", depth);
     fetch(`/api/pine?${p.toString()}`)
       .then((r) => r.json())
       .then((d) => !cancelled && setData(d))
       .finally(() => !cancelled && setLoading(false));
     return () => { cancelled = true; };
-  }, [mode, timeframe, q, minTrades, sort, dir, page, tickerKey]);
+  }, [mode, timeframe, depth, q, minTrades, sort, dir, page, tickerKey]);
 
   function switchMode(m: "rank" | "runs") {
     setMode(m);
@@ -113,7 +120,9 @@ export default function PineView({ tickers, watchlist }: { tickers: string[]; wa
           history <em>and</em> on the last 30%, beating what simply holding the stock gave over the same holding
           time on both, with a profit factor above 1 on the last 30%. Nothing was tuned. No spread or slippage
           is charged, so live results will be somewhat worse. <span className="text-text">Score</span> = the held-up share,
-          marked down when it rests on few tickers (2 of 2 proves less than 9 of 10). A strategy that held up on many tickers is far more
+          marked down when it rests on few tickers (2 of 2 proves less than 9 of 10). <span className="text-text">Depth</span>
+          judges the recent part on the last 1000-4000 bars instead, as in the TrendSpider backtests (same run, so
+          only a trade already open at the window start can differ from a fresh start there). A strategy that held up on many tickers is far more
           believable than one that shines on one.
         </p>
       </div>
@@ -135,6 +144,13 @@ export default function PineView({ tickers, watchlist }: { tickers: string[]; wa
           </select>
         </label>
         <label className="flex flex-col gap-1 text-xs text-text-faint">
+          Recent part judged on
+          <select id="pine-depth" value={depth} onChange={(e) => setDepth(e.target.value)} className={inputCls}>
+            <option value="">Last 30% of history</option>
+            {["1000", "2000", "3000", "4000"].map((d) => <option key={d} value={d}>Last {d} bars (depth)</option>)}
+          </select>
+        </label>
+        <label className="flex flex-col gap-1 text-xs text-text-faint">
           Min trades per run
           <input id="pine-min" type="number" min={0} value={minTrades} onChange={(e) => setMinTrades(Number(e.target.value) || 0)}
             className={`${inputCls} w-28`} />
@@ -146,7 +162,7 @@ export default function PineView({ tickers, watchlist }: { tickers: string[]; wa
         </label>
       </div>
 
-      <DataTable columns={mode === "rank" ? RANK_COLUMNS : RUN_COLUMNS} rows={data?.rows ?? []} sortKey={sort} sortDir={dir}
+      <DataTable columns={withRecent(mode === "rank" ? RANK_COLUMNS : RUN_COLUMNS, depth)} rows={data?.rows ?? []} sortKey={sort} sortDir={dir}
         onSort={onSort} emptyMessage={loading ? "Loading…" : "No runs match."} />
 
       <div className="flex items-center justify-center gap-4">

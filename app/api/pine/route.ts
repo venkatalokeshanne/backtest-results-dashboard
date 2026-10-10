@@ -33,7 +33,14 @@ export async function GET(req: NextRequest) {
   const pageSize = Math.min(parseInt(p.get("page_size") ?? "50", 10), 200);
 
   const title = (id: string) => data.strategies[id]?.title ?? id;
-  const rows = data.rows.filter((r) =>
+  // Depth (as in the TrendSpider backtests): judge the recent part on the last N bars instead of the
+  // last 30%. Rows without that many bars are left out rather than silently judged on less.
+  const depth = parseInt(p.get("depth") ?? "", 10);
+  const source = Number.isNaN(depth) ? data.rows : data.rows.filter((r) => (r.bars ?? 0) > depth).map((r) => ({
+    ...r, oos_trades: r[`d${depth}_trades`], oos_avg_trade: r[`d${depth}_avg_trade`], oos_win_rate: r[`d${depth}_win_rate`],
+    oos_profit_factor: r[`d${depth}_profit_factor`], oos_edge_trade: r[`d${depth}_edge_trade`], oos_median_trade: null,
+  }));
+  const rows = source.filter((r) =>
     (!q.timeframe || r.timeframe === q.timeframe) &&
     (!q.tickers || q.tickers.has(r.ticker)) &&
     (r.trades ?? 0) >= q.minTrades &&
