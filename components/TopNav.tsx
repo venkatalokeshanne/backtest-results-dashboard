@@ -11,6 +11,7 @@ export const NAV = [
   { key: "tag-strategies", label: "By Tag" },
   { key: "compare", label: "Compare" },
   { key: "playbook", label: "Day-Trading Playbook" },
+  { key: "pine", label: "TradingView Pine (Foresight)" },
 ];
 
 export default function TopNav({
