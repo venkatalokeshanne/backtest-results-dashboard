@@ -23,7 +23,12 @@ COLS = ["strategy_id", "ticker", "timeframe", "bars", "from", "to",
         "drift_trade", "edge_trade", "is_edge_trade", "oos_edge_trade"]
 DEPTHS = (1000, 2000, 3000, 4000)
 for _d in DEPTHS:
-    COLS += [f"d{_d}_trades", f"d{_d}_avg_trade", f"d{_d}_win_rate", f"d{_d}_profit_factor", f"d{_d}_edge_trade"]
+    COLS += [f"d{_d}_trades", f"d{_d}_avg_trade", f"d{_d}_win_rate", f"d{_d}_profit_factor", f"d{_d}_edge_trade",
+             f"d{_d}_net_pct", f"d{_d}_max_dd", f"d{_d}_from"]
+# net % = sum of the per-trade net % returns (commission in, the script's own sizing out; not compounded,
+# because overlapping positions would compound into impossible figures); max dd = largest fall of that
+# running sum in percentage points, negative like the TrendSpider rows
+COLS += ["net_profit_pct", "trade_max_dd", "is_net_pct", "oos_net_pct", "oos_max_dd", "oos_from"]
 
 
 def drift_per_bar(x):
@@ -41,6 +46,10 @@ def edge(avg, hold_bars, x):
     if avg is None or d is None or not hold_bars or not n: return None
     net_dir = ((x.get("t_long") or 0) - (x.get("t_short") or 0)) / n
     return avg - d * hold_bars * net_dir
+
+
+def neg(v):
+    return None if v is None else -round(v, 2)
 
 
 def r(v, d=3):
@@ -84,7 +93,10 @@ def main():
                          r(edge(x.get("t_avg"), x.get("t_bars"), x)), r(edge(x.get("is_avg"), x.get("is_bars"), x)),
                          r(edge(x.get("oos_avg"), x.get("oos_bars"), x))]
                         + [v for d in DEPTHS for v in (x.get(f"d{d}_n"), r(x.get(f"d{d}_avg")), r(x.get(f"d{d}_win"), 1),
-                                                       r(x.get(f"d{d}_pf")), r(edge(x.get(f"d{d}_avg"), x.get(f"d{d}_bars"), x)))])
+                                                       r(x.get(f"d{d}_pf")), r(edge(x.get(f"d{d}_avg"), x.get(f"d{d}_bars"), x)),
+                                                       r(x.get(f"d{d}_net"), 2), neg(x.get(f"d{d}_dd")), x.get(f"d{d}_from"))]
+                        + [r(x.get("t_net"), 2), neg(x.get("t_dd")), r(x.get("is_net"), 2), r(x.get("oos_net"), 2),
+                           neg(x.get("oos_dd")), x.get("oos_from")])
     for sid, c in errors.items(): strategies[sid]["error_kinds"] = dict(c)
     done = sum(1 for f in glob.glob(str(SRC / "*" / "*.done")))
     OUT.write_text(json.dumps({"columns": COLS, "rows": rows, "strategies": strategies,

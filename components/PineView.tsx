@@ -31,6 +31,8 @@ const RANK_COLUMNS: Column[] = [
   { key: "med_oos_avg", label: "Avg trade % last 30%", sortable: true, align: "right", render: pct },
   { key: "med_oos_edge", label: "Beat holding by % (last 30%)", sortable: true, align: "right", render: pct },
   { key: "med_oos_pf", label: "PF last 30%", sortable: true, align: "right", render: (v) => fmt(v) },
+  { key: "med_net", label: "Net % (median ticker)", sortable: true, align: "right", render: pct },
+  { key: "med_dd", label: "Max DD % (median ticker)", sortable: true, align: "right", render: pct },
   { key: "med_win", label: "Win %", sortable: true, align: "right", render: (v) => fmt(v, 1) },
   { key: "trades", label: "Trades", sortable: true, align: "right" },
   { key: "held_up_tickers", label: "Held up on", render: (v) => <span className="text-text-dim">{v || "—"}</span> },
@@ -41,6 +43,8 @@ const RUN_COLUMNS: Column[] = [
   { key: "ticker", label: "Ticker", sortable: true },
   { key: "timeframe", label: "TF", sortable: true },
   { key: "held_up", label: "Held up", align: "center", render: (v) => (v ? <span className="text-accent">✓</span> : "") },
+  { key: "net_profit_pct", label: "Net %", sortable: true, align: "right", render: pct },
+  { key: "trade_max_dd", label: "Max DD %", sortable: true, align: "right", render: pct },
   { key: "trades", label: "Trades", sortable: true, align: "right" },
   { key: "win_rate", label: "Win %", sortable: true, align: "right", render: (v) => fmt(v, 1) },
   { key: "avg_trade", label: "Avg trade %", sortable: true, align: "right", render: pct },
@@ -51,17 +55,17 @@ const RUN_COLUMNS: Column[] = [
   { key: "oos_avg_trade", label: "Avg % last 30%", sortable: true, align: "right", render: pct },
   { key: "oos_profit_factor", label: "PF last 30%", sortable: true, align: "right", render: (v) => fmt(v) },
   { key: "oos_edge_trade", label: "Beat holding % (last 30%)", sortable: true, align: "right", render: pct },
-  { key: "max_drawdown", label: "Max DD % (script sizing)", sortable: true, align: "right", render: pct },
   { key: "trades_per_month", label: "Trades/mo", sortable: true, align: "right", render: (v) => fmt(v, 1) },
-  { key: "from", label: "From", sortable: true },
+  { key: "window_from", label: "From", sortable: true },
 ];
 
 function recentLabel(depth: string) { return depth ? `last ${depth} bars` : "last 30%"; }
 // With a depth picked, the headline columns (trades, win %, avg trade, PF) describe that window. In the
 // runs table the separate "last N bars" copies would then repeat them, and median / drawdown / trades per
 // month are not computed per window, so those columns are hidden rather than shown for the wrong period.
-const HEADLINE = new Set(["trades", "win_rate", "avg_trade", "profit_factor", "med_win"]);
-const HIDE_WITH_DEPTH = new Set(["median_trade", "max_drawdown", "trades_per_month",
+const HEADLINE = new Set(["trades", "win_rate", "avg_trade", "profit_factor", "med_win", "net_profit_pct",
+  "trade_max_dd", "med_net", "med_dd", "window_from"]);
+const HIDE_WITH_DEPTH = new Set(["median_trade", "trades_per_month",
   "oos_trades", "oos_avg_trade", "oos_profit_factor"]);
 function withRecent(cols: Column[], depth: string): Column[] {
   return cols
@@ -125,7 +129,11 @@ export default function PineView({ tickers, watchlist }: { tickers: string[]; wa
         </p>
         <p className="mt-1.5">
           Trade figures are per-trade <span className="text-text">net %</span> (commission included, position size removed, so
-          strategies are comparable). <span className="text-text">Held up</span> = profitable per trade on the first 70% of the
+          strategies are comparable). <span className="text-text">Net %</span> is the sum of those per-trade returns (not compounded:
+          many scripts hold several positions at once, and compounding those would invent impossible figures), and
+          <span className="text-text">Max DD</span> is the largest fall of that running sum, in percentage points — the
+          same yardstick for every strategy, whatever sizing its author chose. <span className="text-text">From</span> is
+          where the history (or the picked depth window) starts. <span className="text-text">Held up</span> = profitable per trade on the first 70% of the
           history <em>and</em> on the last 30%, beating what simply holding the stock gave over the same holding
           time on both, with a profit factor above 1 on the last 30%. Nothing was tuned. No spread or slippage
           is charged, so live results will be somewhat worse. <span className="text-text">Score</span> = the held-up share,

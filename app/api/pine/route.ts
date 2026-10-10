@@ -36,7 +36,7 @@ export async function GET(req: NextRequest) {
   // Depth (as in the TrendSpider backtests): judge the recent part on the last N bars instead of the
   // last 30%. Rows without that many bars are left out rather than silently judged on less.
   const depth = parseInt(p.get("depth") ?? "", 10);
-  const source = Number.isNaN(depth) ? data.rows : data.rows.filter((r) => (r.bars ?? 0) > depth).map((r) => ({
+  const source = Number.isNaN(depth) ? data.rows.map((r) => ({ ...r, window_from: r.from?.slice(0, 10) })) : data.rows.filter((r) => (r.bars ?? 0) > depth).map((r) => ({
     ...r,
     // the window replaces the "recent" part of the check ...
     oos_trades: r[`d${depth}_trades`], oos_avg_trade: r[`d${depth}_avg_trade`], oos_win_rate: r[`d${depth}_win_rate`],
@@ -44,7 +44,8 @@ export async function GET(req: NextRequest) {
     // ... and the headline figures describe that window too, as on the TrendSpider pages
     trades: r[`d${depth}_trades`], win_rate: r[`d${depth}_win_rate`], avg_trade: r[`d${depth}_avg_trade`],
     profit_factor: r[`d${depth}_profit_factor`], edge_trade: r[`d${depth}_edge_trade`], median_trade: null,
-    trades_per_month: null, max_drawdown: null, sharpe: null, sortino: null,
+    net_profit_pct: r[`d${depth}_net_pct`], trade_max_dd: r[`d${depth}_max_dd`], window_from: r[`d${depth}_from`],
+    trades_per_month: null, sharpe: null, sortino: null,
   }));
   const rows = source.filter((r) =>
     (!q.timeframe || r.timeframe === q.timeframe) &&
@@ -73,6 +74,8 @@ export async function GET(req: NextRequest) {
         med_oos_edge: r2(median(g.map((r) => r.oos_edge_trade).filter((v) => v != null))),
         med_oos_pf: r2(median(g.map((r) => r.oos_profit_factor).filter((v) => v != null))),
         med_win: r2(median(g.map((r) => r.win_rate).filter((v) => v != null))),
+        med_net: r2(median(g.map((r) => r.net_profit_pct).filter((v) => v != null))),
+        med_dd: r2(median(g.map((r) => r.trade_max_dd).filter((v) => v != null))),
         trades: g.reduce((a, r) => a + (r.trades ?? 0), 0),
         errors: s?.errors ?? 0,
       };
