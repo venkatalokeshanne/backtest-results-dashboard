@@ -10,6 +10,7 @@ import TopStrategiesView from "@/components/TopStrategiesView";
 import TagStrategiesView from "@/components/TagStrategiesView";
 import CompareTimeframesView from "@/components/CompareTimeframesView";
 import PlaybookView from "@/components/PlaybookView";
+import PineView from "@/components/PineView";
 
 const EMPTY_FILTERS: FiltersState = {
   strategy_name: [], ticker: [], timeframe: [], depth: [],
@@ -26,6 +27,7 @@ const VIEW_TITLES: Record<string, string> = {
   "tag-strategies": "Top Strategies by Tag",
   compare: "Compare",
   playbook: "Day-Trading Playbook",
+  pine: "TradingView Pine Strategies (Foresight)",
 };
 
 export default function Home() {
@@ -108,6 +110,14 @@ export default function Home() {
           {view === "compare" && <CompareTimeframesView tickers={scopedTickers} />}
           {view === "playbook" && (
             <PlaybookView watchlist={watchlist} watchlistTickers={scopedTickers} />
+          )}
+          {view === "pine" && (
+            // The Pine screen covers every symbol on the IBKR lists (plus SPY, IWM), not only the ones the
+            // TrendSpider run had, so scope by the full list rather than tickers_in_data.
+            <PineView
+              tickers={options?.watchlists?.find((w) => w.name === watchlist)?.tickers ?? []}
+              watchlist={watchlist}
+            />
           )}
         </div>
       </main>
