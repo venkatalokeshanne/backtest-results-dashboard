@@ -36,7 +36,7 @@ export async function GET(req: NextRequest) {
   // Depth (as in the TrendSpider backtests): judge the recent part on the last N bars instead of the
   // last 30%. Rows without that many bars are left out rather than silently judged on less.
   const depth = parseInt(p.get("depth") ?? "", 10);
-  const source = Number.isNaN(depth) ? data.rows.map((r) => ({ ...r, window_from: r.from?.slice(0, 10) })) : data.rows.filter((r) => (r.bars ?? 0) > depth).map((r) => ({
+  const source: PineRow[] = Number.isNaN(depth) ? data.rows.map((r) => ({ ...r, window_from: r.from?.slice(0, 10) })) : data.rows.filter((r) => (r.bars ?? 0) > depth).map((r) => ({
     ...r,
     // the window replaces the "recent" part of the check ...
     oos_trades: r[`d${depth}_trades`], oos_avg_trade: r[`d${depth}_avg_trade`], oos_win_rate: r[`d${depth}_win_rate`],
