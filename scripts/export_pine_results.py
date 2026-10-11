@@ -1,5 +1,5 @@
-"""Export the Foresight screening of TradingView Pine strategies into data/exports/pine_results.json.
-
+"""Export the Foresight screening of TradingView Pine strategies into data/exports/pine_meta.json and
+pine_results_<daily|1h|15m|5m>.json (one per timeframe).
 Source: C:/Users/annev/workspace/pine_screen/results/<tf>/<TICKER>.jsonl, written by pine_screen/runner.py.
 Each line is one strategy run as published (its own inputs and strategy() settings) on one ticker and
 timeframe, by Foresight, which runs the .pine directly. Trade figures are per-trade NET % returns
@@ -13,7 +13,10 @@ from pathlib import Path
 
 SRC = Path(r"C:\Users\annev\workspace\pine_screen\results")
 PROGRESS = Path(r"C:\Users\annev\workspace\trading_strategies_indicators\progress\progress.json")
-OUT = Path(__file__).resolve().parents[1] / "data" / "exports" / "pine_results.json"
+OUT_DIR = Path(__file__).resolve().parents[1] / "data" / "exports"
+# One file per timeframe (each well under GitHub's 100 MB file limit; nothing is dropped) plus a meta file
+# with the column names and the strategy list. The dashboard loads only the timeframe being viewed.
+TF_FILE = {"Daily": "daily", "1H": "1h", "15m": "15m", "5m": "5m"}
 TF = {"daily": "Daily", "1h": "1H", "15m": "15m", "5m": "5m"}
 COLS = ["strategy_id", "ticker", "timeframe", "bars", "from", "to",
         "trades", "win_rate", "avg_trade", "median_trade", "profit_factor", "sum_trades", "avg_bars", "longs", "shorts",
@@ -54,6 +57,26 @@ def neg(v):
 
 def r(v, d=3):
     return None if v is None else round(v, d)
+
+
+PINE_DIR = Path(r"C:\Users\annev\workspace\trading_strategies_indicators\TradingView\strategies")
+
+
+def mark_duplicates(strategies):
+    """Authors sometimes republish the same code under another title. Two strategies whose source is the same
+    once comments, whitespace and the strategy() title are removed get `dup_of` = the first one's id, so the
+    dashboard does not count them as two independent results."""
+    import hashlib, re
+    first = {}
+    for sid in sorted(strategies):
+        files = list(PINE_DIR.glob(f"{sid}*.pine"))
+        if not files: continue
+        src = files[0].read_text(encoding="utf-8", errors="replace")
+        src = re.sub(r"//[^\n]*", "", src)
+        src = re.sub(r"strategy\s*\(\s*(title\s*=\s*)?(\"[^\"]*\"|'[^']*')", "strategy(", src)
+        key = hashlib.sha1(re.sub(r"\s+", "", src).encode()).hexdigest()
+        if key in first: strategies[sid]["dup_of"] = first[key]
+        else: first[key] = sid
 
 
 def main():
@@ -98,13 +121,39 @@ def main():
                         + [r(x.get("t_net"), 2), neg(x.get("t_dd")), r(x.get("is_net"), 2), r(x.get("oos_net"), 2),
                            neg(x.get("oos_dd")), x.get("oos_from")])
     for sid, c in errors.items(): strategies[sid]["error_kinds"] = dict(c)
+    # Foresight's repaint check per strategy x timeframe (pine_screen/repaint.py): "repaints" = the historical
+    # trades used data not available at the time, so those results are fiction
+    rp = SRC.parent / "repaint.jsonl"
+    if rp.exists():
+        for line in open(rp, encoding="utf-8"):
+            x = json.loads(line)
+            if x["strategy"] in strategies and x.get("verdict"):
+                strategies[x["strategy"]].setdefault("repaint", {})[TF.get(x["tf"], x["tf"])] = {
+                    "verdict": x["verdict"], "vectors": x.get("vectors", []), "checked_on": x.get("ticker"),
+                    "as_written": x.get("as_written"), "matched": x.get("matched")}
+    for sid, s in strategies.items(): s["traded"] = 0
+    for row in rows: strategies[row[0]]["traded"] += 1
+    mark_duplicates(strategies)
     done = sum(1 for f in glob.glob(str(SRC / "*" / "*.done")))
-    OUT.write_text(json.dumps({"columns": COLS, "rows": rows, "strategies": strategies,
-                               "meta": {"generated": time.strftime("%Y-%m-%d %H:%M"), "datasets_done": done,
-                                        "datasets_total": len(glob.glob(r"C:\Users\annev\workspace\pine_screen\data\*\*.csv")),
-                                        "engine": "Foresight (runs the .pine directly)", "oos_split": 0.7}},
-                              separators=(",", ":")), encoding="utf-8")
-    print(f"{len(rows)} rows, {len(strategies)} strategies, {done} datasets done -> {OUT} ({OUT.stat().st_size / 1e6:.1f} MB)")
+    kinds = collections.Counter()
+    for c in errors.values(): kinds.update(c)
+    meta = {"generated": time.strftime("%Y-%m-%d %H:%M"), "datasets_done": done,
+            "datasets_total": len(glob.glob(r"C:\Users\annev\workspace\pine_screen\data\*\*.csv")),
+            "engine": "Foresight (runs the .pine directly)", "oos_split": 0.7, "timeframes": list(TF_FILE),
+            "tickers": sorted({row[1] for row in rows}),
+            "totals": {"runs": sum(s["runs"] + s["errors"] for s in strategies.values()), "traded": len(rows),
+                       "no_closed_trades": sum(s["runs"] for s in strategies.values()) - len(rows),
+                       "could_not_run": dict(kinds)}}
+    (OUT_DIR / "pine_meta.json").write_text(json.dumps({"columns": COLS, "strategies": strategies, "meta": meta},
+                                                       separators=(",", ":")), encoding="utf-8")
+    for tf, name in TF_FILE.items():
+        part = [row for row in rows if row[2] == tf]
+        f = OUT_DIR / f"pine_results_{name}.json"
+        f.write_text(json.dumps({"rows": part}, separators=(",", ":")), encoding="utf-8")
+        print(f"  {f.name}: {len(part)} rows, {f.stat().st_size / 1e6:.1f} MB")
+    old = OUT_DIR / "pine_results.json"           # the single-file format this replaced
+    if old.exists(): old.unlink()
+    print(f"{len(rows)} rows, {len(strategies)} strategies, {done} datasets done")
 
 
 if __name__ == "__main__":
