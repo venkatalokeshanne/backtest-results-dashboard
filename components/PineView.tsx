@@ -130,14 +130,14 @@ export default function PineView({ tickers, watchlist }: { tickers: string[]; wa
         <p className="mt-1.5">
           Trade figures are per-trade <span className="text-text">net %</span> (commission included, position size removed, so
           strategies are comparable). <span className="text-text">Net %</span> is the sum of those per-trade returns (not compounded:
-          many scripts hold several positions at once, and compounding those would invent impossible figures), and
+          many scripts hold several positions at once, and compounding those would invent impossible figures), and{" "}
           <span className="text-text">Max DD</span> is the largest fall of that running sum, in percentage points — the
           same yardstick for every strategy, whatever sizing its author chose. <span className="text-text">From</span> is
           where the history (or the picked depth window) starts. <span className="text-text">Held up</span> = profitable per trade on the first 70% of the
           history <em>and</em> on the last 30%, beating what simply holding the stock gave over the same holding
           time on both, with a profit factor above 1 on the last 30%. Nothing was tuned. No spread or slippage
           is charged, so live results will be somewhat worse. <span className="text-text">Score</span> = the held-up share,
-          marked down when it rests on few tickers (2 of 2 proves less than 9 of 10). <span className="text-text">Depth</span>
+          marked down when it rests on few tickers (2 of 2 proves less than 9 of 10). <span className="text-text">Depth</span>{" "}
           judges the recent part on the last 1000-4000 bars instead, as in the TrendSpider backtests (same run, so
           only a trade already open at the window start can differ from a fresh start there). A strategy that held up on many tickers is far more
           believable than one that shines on one.
