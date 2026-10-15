@@ -1,9 +1,11 @@
 """Export the Foresight screening of TradingView Pine strategies into data/exports/pine_meta.json and
 pine_results_<daily|1h|15m|5m>.json (one per timeframe).
-Source: C:/Users/annev/workspace/pine_screen/results/<tf>/<TICKER>.jsonl, written by pine_screen/runner.py.
+Source: C:/Users/annev/workspace/pine_screen/results_pos/<tf>/<TICKER>.jsonl (runner.py's records with the trade
+statistics recomputed by restat.py), else results/.
 Each line is one strategy run as published (its own inputs and strategy() settings) on one ticker and
-timeframe, by Foresight, which runs the .pine directly. Trade figures are per-trade NET % returns
-(pl / (entry price x size): commission included, position size cancels out). "is_" = trades entered in
+timeframe, by Foresight, which runs the .pine directly. Trade figures are per-trade NET % returns where a trade is a
+POSITION (partial exits merged into their entry, scale-ins into one campaign): P&L / capital entered, commission
+included, position size cancels out. "is_" = trades entered in
 the first 70% of the bars, "oos_" = the last 30%; nothing was tuned on either part.
 
 Rows that errored (data the script needs that we don't have, retired libraries, ...) are not rows here;
@@ -11,7 +13,10 @@ they are counted per strategy in `strategies[id].errors`. Run: python scripts/ex
 import json, glob, collections, time
 from pathlib import Path
 
-SRC = Path(r"C:\Users\annev\workspace\pine_screen\results")
+# results_pos/: the same records with every trade statistic recomputed from the saved trades, one trade = one position
+# (partial exits and scale-ins merged; pine_screen/restat.py). results/ keeps the run markers (.done).
+RUNS = Path(r"C:\Users\annev\workspace\pine_screen\results")
+SRC = RUNS.parent / "results_pos" if (RUNS.parent / "results_pos").exists() else RUNS
 PROGRESS = Path(r"C:\Users\annev\workspace\trading_strategies_indicators\progress\progress.json")
 OUT_DIR = Path(__file__).resolve().parents[1] / "data" / "exports"
 # One file per timeframe (each well under GitHub's 100 MB file limit; nothing is dropped) plus a meta file
@@ -134,7 +139,7 @@ def main():
     for sid, s in strategies.items(): s["traded"] = 0
     for row in rows: strategies[row[0]]["traded"] += 1
     mark_duplicates(strategies)
-    done = sum(1 for f in glob.glob(str(SRC / "*" / "*.done")))
+    done = sum(1 for f in glob.glob(str(RUNS / "*" / "*.done")))
     kinds = collections.Counter()
     for c in errors.values(): kinds.update(c)
     meta = {"generated": time.strftime("%Y-%m-%d %H:%M"), "datasets_done": done,
